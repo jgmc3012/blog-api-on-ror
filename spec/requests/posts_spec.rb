@@ -19,17 +19,27 @@ RSpec.describe 'Posts', type: :request do
         expect(response).to have_http_status(200)
       end
     end
-
   end
 
   describe 'GET /posts/{id}/' do
-    let(:post) { create(:post) } # create is a helper method from FactoryBot
-    before { get "/posts/#{post.id}" }
+    describe "without data in the DB" do
+      it 'should return status not found' do
+        get '/posts/1/'
+        payload = JSON.parse(response.body)
+        expect(payload['error']).to eq('Post not found') 
+        expect(response).to have_http_status(404)
+      end
+    end
 
-    it 'should return the post' do
-      payload = JSON.parse(response.body)
-      expect(payload['id']).to eq(post.id)
-      expect(response).to have_http_status(200)
+    describe "with data in the DB" do
+      let(:post) { create(:post) } # create is a helper method from FactoryBot
+      before { get "/posts/#{post.id}" }
+
+      it 'should return the post' do
+        payload = JSON.parse(response.body)
+        expect(payload['id']).to eq(post.id)
+        expect(response).to have_http_status(200)
+      end
     end
   end
 end
