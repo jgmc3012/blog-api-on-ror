@@ -22,3 +22,11 @@ Things you may want to cover:
 * Deployment instructions
 
 * ...
+
+# Dev Tools
+
+## Run interactive shell
+`RAILS_ENV=test rails c`
+
+## Run Test
+`bundle exec rspec`
