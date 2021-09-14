@@ -70,7 +70,7 @@ RSpec.describe 'Posts', type: :request do
 
       payload = JSON.parse(response.body)
       expect(response).to have_http_status(:bad_request)
-      expect(payload['error']).to eq('Missing parameters or the value is empty')
+      expect(payload['error']).to eq('Invalid Post')
     end
 
     it 'should return an error if user not found' do
@@ -109,14 +109,14 @@ RSpec.describe 'Posts', type: :request do
 
     it 'should return an error if the post is not valid' do
       article_params = {
-        title: '',
-        content: ''
+        title: nil,
+        content: nil
       } 
       patch "/posts/#{article.id}/", params: article_params
 
       payload = JSON.parse(response.body)
       expect(response).to have_http_status(:bad_request)
-      expect(payload['error']).to eq('Missing parameters or the value is empty')
+      expect(payload['error']).to eq('Invalid Post')
     end
   end
 
