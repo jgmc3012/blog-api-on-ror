@@ -3,7 +3,19 @@ require 'byebug'
 class PostsController < ApplicationController
 
     rescue_from Exception do |e|
-        return render json: { error: e.message }, status: :internal_server_error
+        render json: { error: e.message }, status: :internal_server_error
+    end
+
+    rescue_from ActiveRecord::RecordInvalid, ActionController::ParameterMissing do |e|
+        if e.message.include? 'must exist'
+            render json: { error: 'User not found' }, status: :bad_request
+        else
+            render json: { error: 'Invalid Post' }, status: :bad_request
+        end
+    end
+
+    rescue_from ActiveRecord::RecordNotFound do |e|
+        render json: { error: 'Post not found' }, status: :not_found
     end
 
     # GET /posts/
@@ -14,41 +26,20 @@ class PostsController < ApplicationController
 
     # GET /posts/{id}/
     def show
-        begin
-            post = Post.find(params[:id])
-        rescue ActiveRecord::RecordNotFound
-            return render json: { error: 'Post not found' }, status: :not_found
-        end
+        post = Post.find(params[:id])
         return render json: post, status: :ok
     end
 
     # POST /posts/
     def create
-        begin
-            post = Post.create!(create_params)
-        rescue ActiveRecord::RecordInvalid, ActionController::ParameterMissing => e
-            if e.message.include? 'must exist'
-                return render json: { error: 'User not found' }, status: :bad_request
-            end
-            return render json: { error: 'Invalid Post' }, status: :bad_request
-        end
+        post = Post.create!(create_params)
         return render json: post, status: :created
     end
 
-    # PATH /posts/{id}/
+    # PATH /posts/{id}/ or PUT /posts/{id}/
     def update
-        begin
-            post = Post.find(params[:id])
-        rescue ActiveRecord::RecordNotFound
-            return render json: { error: 'Post not found' }, status: :not_found
-        end
-
-        begin
-            post.update!(update_params)
-        rescue ActiveRecord::RecordInvalid
-            return render json: { error: 'Invalid Post' }, status: :bad_request
-        end
-
+        post = Post.find(params[:id])
+        post.update!(update_params)
         return render json: post, status: :ok
     end
 
