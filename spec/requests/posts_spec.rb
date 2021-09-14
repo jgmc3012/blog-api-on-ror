@@ -55,11 +55,11 @@ RSpec.describe 'Posts', type: :request do
       post '/posts/', params: post_params
 
       payload = JSON.parse(response.body)
-      expect(payload['title']).to eq(post_params[:title])
       expect(response).to have_http_status(:created)
+      expect(payload['title']).to eq(post_params[:title])
     end
 
-    it 'should return an error if the post is not valid' do
+    it 'should return an error if the params have empty values' do
       post_params = {
         title: '',
         content: '',
@@ -69,8 +69,22 @@ RSpec.describe 'Posts', type: :request do
       post '/posts/', params: post_params
 
       payload = JSON.parse(response.body)
-      expect(payload['error']).to eq('Post not valid')
       expect(response).to have_http_status(:bad_request)
+      expect(payload['error']).to eq('Missing parameters or the value is empty')
+    end
+
+    it 'should return an error if user not found' do
+      post_params = {
+        title: 'Post title',
+        content: 'Post body',
+        published: true,
+        user_id: 'hello'
+      }
+      post '/posts/', params: post_params
+
+      payload = JSON.parse(response.body)
+      expect(response).to have_http_status(:bad_request)
+      expect(payload['error']).to eq('User not found')
     end
 
   end
@@ -86,10 +100,10 @@ RSpec.describe 'Posts', type: :request do
       patch "/posts/#{article.id}/", params: article_params
 
       payload = JSON.parse(response.body)
+      expect(response).to have_http_status(:ok)
       expect(payload['title']).to eq(article_params[:title])
       expect(payload['content']).to eq(article_params[:content])
       expect(payload['published']).to eq(article_params[:published])
-      expect(response).to have_http_status(:ok)
 
     end
 
@@ -101,8 +115,8 @@ RSpec.describe 'Posts', type: :request do
       patch "/posts/#{article.id}/", params: article_params
 
       payload = JSON.parse(response.body)
-      expect(payload['error']).to eq('Post not valid')
       expect(response).to have_http_status(:bad_request)
+      expect(payload['error']).to eq('Missing parameters or the value is empty')
     end
   end
 
