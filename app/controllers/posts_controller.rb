@@ -25,7 +25,7 @@ class PostsController < ApplicationController
         if !params[:title].nil?
             posts = PostDao.search_by_title(posts, params[:title])
         end
-        return render json: posts, status: :ok 
+        return render json: posts.includes(:user), status: :ok 
     end
 
     # GET /posts/{id}/
