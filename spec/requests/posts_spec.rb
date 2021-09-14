@@ -118,6 +118,19 @@ RSpec.describe 'Posts', type: :request do
       expect(response).to have_http_status(:bad_request)
       expect(payload['error']).to eq('Invalid Post')
     end
+
+    it 'should return an error if the post is not found' do
+      article_params = {
+        title: 'Post title',
+        content: 'Post body',
+        published: true
+      } 
+      patch "/posts/1/", params: article_params
+
+      payload = JSON.parse(response.body)
+      expect(response).to have_http_status(:not_found)
+      expect(payload['error']).to eq('Post not found')
+    end
   end
 
 end
