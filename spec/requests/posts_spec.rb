@@ -11,12 +11,23 @@ RSpec.describe 'Posts', type: :request do
     end
 
     describe "with data in the DB" do
-      let!(:posts) { create_list(:post, 10, published: true) } # create_list is a helper method from FactoryBot
       it 'should return all the published posts' do
+        posts = create_list(:post, 10, published: true) # create_list is a helper method from FactoryBot
         get '/posts/'
+        expect(response).to have_http_status(:ok)
         payload = JSON.parse(response.body)
         expect(payload.size).to eq(posts.size)
+      end
+      
+      it 'search by title' do
+        python = create(:post, title: 'Course of Python', published: true)
+        async = create(:post, title: 'Async and IO', published: true)
+        golang = create(:post, title: 'Course of golang', published: true)
+        get '/posts/?title=Course'
         expect(response).to have_http_status(:ok)
+        payload = JSON.parse(response.body)
+        expect(payload.size).to eq(2)
+        expect(payload.map { |p| p['id'] }.sort).to eq([golang.id, python.id].sort)
       end
     end
   end
