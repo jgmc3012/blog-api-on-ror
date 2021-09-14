@@ -1,8 +1,9 @@
-require 'byebug'
+require_relative '../services/post_dao'
 
 class PostsController < ApplicationController
 
     rescue_from Exception do |e|
+        byebug
         render json: { error: e.message }, status: :internal_server_error
     end
 
@@ -21,6 +22,9 @@ class PostsController < ApplicationController
     # GET /posts/
     def index
         posts = Post.where(:published => true)
+        if !params[:title].nil?
+            posts = PostDao.search_by_title(posts, params[:title])
+        end
         return render json: posts, status: :ok 
     end
 
