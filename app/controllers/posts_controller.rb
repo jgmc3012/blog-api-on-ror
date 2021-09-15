@@ -1,6 +1,7 @@
 require_relative '../services/post_dao'
 
 class PostsController < ApplicationController
+    before_action :authenticate_user!, only: [:create, :update]
 
     rescue_from Exception do |e|
         byebug
@@ -47,6 +48,8 @@ class PostsController < ApplicationController
         return render json: post, status: :ok
     end
 
+    private
+
     def create_params
         {
             title: params.require(:title),
@@ -58,5 +61,26 @@ class PostsController < ApplicationController
 
     def update_params
         params.permit(:title, :content, :published)
+    end
+
+    def authenticate_user!
+        headers = request.headers
+        token_regex = /^Bearer (\w+)$/
+        if headers['Authorization'].nil?
+            render json: { error: 'Should provide a token' }, status: :unauthorized
+            return
+        end
+
+        if !(match = headers['Authorization'].match(token_regex))
+            render json: { error: 'Token should be Bearer token' }, status: :unauthorized
+            return
+        end
+        token = match[1]
+        user = User.find_by_token(token)
+        if user.nil?
+            render json: { error: 'Invalid token' }, status: :unauthorized
+            return
+        end
+        Current.user = user
     end
 end
