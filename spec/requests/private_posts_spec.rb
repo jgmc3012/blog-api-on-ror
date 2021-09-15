@@ -15,7 +15,7 @@ RSpec.describe 'Posts Authentications', type: :request do
         end
         
         context 'when other user is the owner of the post' do
-            context 'when the post is a draft' do
+            context 'and the post is a draft' do
                 let!(:post) { create(:post, user: other_user, published: false) }
                 before { get "/posts/#{post.id}", headers: auth_headers(user) }
                 context 'payload content error message' do
@@ -27,7 +27,7 @@ RSpec.describe 'Posts Authentications', type: :request do
                     it { is_expected.to have_http_status(:not_found) }
                 end
             end
-            context 'when the post is public' do
+            context 'and the post is public' do
                 let!(:post) { create(:post, user: other_user, published: true) }
                 before { get "/posts/#{post.id}", headers: auth_headers(user) }
                 context 'payload' do

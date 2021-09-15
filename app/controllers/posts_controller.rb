@@ -1,7 +1,8 @@
 require_relative '../services/post_dao'
 
 class PostsController < ApplicationController
-    before_action :authenticate_user!, only: [:create, :update]
+    before_action :authenticate_user
+    before_action :check_permissions!, only: [:create, :update]
 
     rescue_from Exception do |e|
         byebug
@@ -31,7 +32,16 @@ class PostsController < ApplicationController
 
     # GET /posts/{id}/
     def show
-        post = Post.find(params[:id])
+        if Current.user.nil?
+            post = Post.find(params[:id], published: true)
+        else
+            post = Post.find(params[:id])
+            if !post.user.id.eql?(Current.user.id) and !post.published
+                render json: { error: 'Post not found' }, status: :not_found
+                return
+            end
+        end
+
         return render json: post, status: :ok
     end
 
@@ -63,11 +73,11 @@ class PostsController < ApplicationController
         params.permit(:title, :content, :published)
     end
 
-    def authenticate_user!
+    def authenticate_user
         headers = request.headers
         token_regex = /^Bearer (\w+)$/
+
         if headers['Authorization'].nil?
-            render json: { error: 'Should provide a token' }, status: :unauthorized
             return
         end
 
@@ -75,12 +85,20 @@ class PostsController < ApplicationController
             render json: { error: 'Token should be Bearer token' }, status: :unauthorized
             return
         end
+
         token = match[1]
-        user = User.find_by_token(token)
+        user = User.find_by_auth_token(token)
         if user.nil?
             render json: { error: 'Invalid token' }, status: :unauthorized
             return
         end
         Current.user = user
+    end
+
+    def check_permissions!
+        if Current.user.nil?
+            render json: { error: 'You should be authenticated' }, status: :unauthorized
+            return
+        end
     end
 end
