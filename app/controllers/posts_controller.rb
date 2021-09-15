@@ -5,7 +5,6 @@ class PostsController < ApplicationController
     before_action :check_permissions!, only: [:create, :update]
 
     rescue_from Exception do |e|
-        byebug
         render json: { error: e.message }, status: :internal_server_error
     end
 
@@ -53,7 +52,7 @@ class PostsController < ApplicationController
 
     # PATH /posts/{id}/ or PUT /posts/{id}/
     def update
-        post = Post.find(params[:id])
+        post = Post.where(user_id: Current.user.id).find(params[:id])
         post.update!(update_params)
         return render json: post, status: :ok
     end
@@ -65,7 +64,7 @@ class PostsController < ApplicationController
             title: params.require(:title),
             content: params.require(:content),
             published: params.require(:published),
-            user_id: params.require(:user_id)
+            user_id: Current.user.id
         }
     end
 
