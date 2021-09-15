@@ -43,10 +43,11 @@ RSpec.describe 'Posts', type: :request do
     end
 
     describe "with data in the DB" do
-      let(:post) { create(:post) } # create is a helper method from FactoryBot
+      let(:post) { create(:post, published: true) } # create is a helper method from FactoryBot
       before { get "/posts/#{post.id}" }
 
       it 'should return the post' do
+        expect(response).to have_http_status(:ok)
         payload = JSON.parse(response.body)
         expect(payload['id']).to eq(post.id)
         expect(payload['title']).to eq(post.title)
@@ -55,27 +56,12 @@ RSpec.describe 'Posts', type: :request do
         expect(payload['author']['id']).to eq(post.user.id)
         expect(payload['author']['name']).to eq(post.user.name)
         expect(payload['author']['email']).to eq(post.user.email)
-        expect(response).to have_http_status(:ok)
       end
     end
   end
 
   describe 'POST /posts/' do
     let(:user) { create(:user) }
-    it 'should create a new post' do
-      post_params = {
-        title: 'Post title',
-        content: 'Post body',
-        published: true,
-        user_id: user.id
-      }
-      post '/posts/', params: post_params
-
-      payload = JSON.parse(response.body)
-      expect(response).to have_http_status(:created)
-      expect(payload['title']).to eq(post_params[:title])
-    end
-
     it 'should return an error if the params have empty values' do
       post_params = {
         title: '',
@@ -83,53 +69,23 @@ RSpec.describe 'Posts', type: :request do
         published: true,
         user_id: user.id
       }
-      post '/posts/', params: post_params
+      post '/posts/', params: post_params, headers: auth_headers(user)
 
       payload = JSON.parse(response.body)
       expect(response).to have_http_status(:bad_request)
       expect(payload['error']).to eq('Invalid Post')
     end
-
-    it 'should return an error if user not found' do
-      post_params = {
-        title: 'Post title',
-        content: 'Post body',
-        published: true,
-        user_id: 'hello'
-      }
-      post '/posts/', params: post_params
-
-      payload = JSON.parse(response.body)
-      expect(response).to have_http_status(:bad_request)
-      expect(payload['error']).to eq('User not found')
-    end
-
   end
 
   describe 'PATCH /posts/{id}/' do
     let(:article) { create(:post) }
-    it 'should partial update a post' do
-      article_params = {
-        title: 'Post title',
-        content: 'Post body',
-        published: !article.published
-      } 
-      patch "/posts/#{article.id}/", params: article_params
-
-      payload = JSON.parse(response.body)
-      expect(response).to have_http_status(:ok)
-      expect(payload['title']).to eq(article_params[:title])
-      expect(payload['content']).to eq(article_params[:content])
-      expect(payload['published']).to eq(article_params[:published])
-
-    end
-
+  
     it 'should return an error if the post is not valid' do
       article_params = {
         title: nil,
         content: nil
       } 
-      patch "/posts/#{article.id}/", params: article_params
+      patch "/posts/#{article.id}/", params: article_params, headers: auth_headers(article.user)
 
       payload = JSON.parse(response.body)
       expect(response).to have_http_status(:bad_request)
@@ -141,8 +97,9 @@ RSpec.describe 'Posts', type: :request do
         title: 'Post title',
         content: 'Post body',
         published: true
-      } 
-      patch "/posts/1/", params: article_params
+      }
+      user = create(:user)
+      patch "/posts/1/", params: article_params, headers: auth_headers(user)
 
       payload = JSON.parse(response.body)
       expect(response).to have_http_status(:not_found)

@@ -33,7 +33,7 @@ class PostsController < ApplicationController
     # GET /posts/{id}/
     def show
         if Current.user.nil?
-            post = Post.find(params[:id], published: true)
+            post = Post.where(published: true).find(params[:id])
         else
             post = Post.find(params[:id])
             if !post.user.id.eql?(Current.user.id) and !post.published
