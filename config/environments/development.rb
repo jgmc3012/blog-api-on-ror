@@ -37,7 +37,7 @@ Rails.application.configure do
 
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log
-
+  config.action_mailer.delivery_method = :letter_opener
   # Raise exceptions for disallowed deprecations.
   config.active_support.disallowed_deprecation = :raise
 

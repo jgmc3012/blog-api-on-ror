@@ -34,17 +34,18 @@ end
 group :development do
   gem 'listen', '~> 3.3'
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
-  gem 'spring'
   gem 'solargraph'
+  gem 'spring'
+  gem 'letter_opener'
 end
 
 group :test do
+  gem 'database_cleaner', '~> 2.0.1' # https://github.com/DatabaseCleaner/database_cleaner
   gem 'factory_bot_rails', '~> 6.2.0' # https://github.com/thoughtbot/factory_bot_rails
   gem 'faker', '~> 2.19.0' # https://github.com/faker-ruby/faker
   gem 'shoulda-matchers', '~> 5.0.0' # https://github.com/thoughtbot/shoulda-matchers
-  gem 'database_cleaner', '~> 2.0.1' # https://github.com/DatabaseCleaner/database_cleaner
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem 'active_model_serializers', '~> 0.10.0'
+gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
